@@ -7,6 +7,8 @@
  * @copyright : Copyright (c) 2023 huenrong
  *
  * @history   : date       author          description
+ *              2023-02-17 huenrong         1. 解决get_compile_time函数错误问题
+ *                                          2. 解决ubuntu20.04上stime函数报错问题
  *              2023-01-18 huenrong        创建文件
  *
  */
@@ -29,12 +31,12 @@ void get_compile_time(char *get_time)
     char compile_date[20] = {0};
     char compile_time[20] = {0};
     char str_month[4] = {0};
-    uint16_t year = 0;
-    uint8_t mon = 0;
-    uint8_t day = 0;
-    uint8_t hour = 0;
-    uint8_t min = 0;
-    uint8_t sec = 0;
+    int year = 0;
+    int mon = 0;
+    int day = 0;
+    int hour = 0;
+    int min = 0;
+    int sec = 0;
 
     snprintf(compile_date, sizeof(compile_date), "%s", __DATE__);
     snprintf(compile_time, sizeof(compile_time), "%s", __TIME__);
@@ -195,7 +197,13 @@ bool set_local_time(const date_time_t local_time)
     new_time.tm_isdst = -1;
 
     t = mktime(&new_time);
+#if __GLIBC_MINOR__ == 31
+    struct timespec res;
+    res.tv_sec = t;
+    clock_settime(CLOCK_REALTIME, &res);
+#else
     ret = stime(&t);
+#endif
     if (0 != ret)
     {
         return false;
