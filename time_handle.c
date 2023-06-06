@@ -84,6 +84,31 @@ int get_local_time_zone(void)
 }
 
 /**
+ * @brief  设置当前系统时区(仅对当前进程有效)
+ * @param  time_zone: 输入参数, 需要设置的时区(例如: "CST-8")
+ * @return true : 成功
+ * @return false: 失败
+ */
+bool set_local_time_zone(const char *time_zone)
+{
+    if (NULL == time_zone)
+    {
+        return false;
+    }
+
+    int ret = -1;
+    ret = setenv("TZ", time_zone, 1);
+    if (0 != ret)
+    {
+        return false;
+    }
+
+    tzset();
+
+    return true;
+}
+
+/**
  * @brief  获取系统当前时间字符串(精确到毫秒)
  * @param  time_buf: 输出参数, 获取到的时间串
  * @param  gap_flag: 输入参数, 获取到的时间是否需要间隔
@@ -113,28 +138,22 @@ bool get_time_str(char *time_buf, const uint8_t gap_flag)
 
     if (0 == gap_flag)
     {
-        snprintf(time_buf, 60, "%4d%02d%02d%02d%02d%02d%06ld",
-                 (1900 + tm_local->tm_year), (1 + tm_local->tm_mon),
-                 tm_local->tm_mday, tm_local->tm_hour,
-                 tm_local->tm_min, tm_local->tm_sec, tv.tv_usec);
+        snprintf(time_buf, 60, "%4d%02d%02d%02d%02d%02d%06ld", (1900 + tm_local->tm_year), (1 + tm_local->tm_mon),
+                 tm_local->tm_mday, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec, tv.tv_usec);
 
         return true;
     }
     else if (1 == gap_flag)
     {
-        snprintf(time_buf, 66, "%4d-%02d-%02d %02d:%02d:%02d.%06ld",
-                 (1900 + tm_local->tm_year), (1 + tm_local->tm_mon),
-                 tm_local->tm_mday, tm_local->tm_hour,
-                 tm_local->tm_min, tm_local->tm_sec, tv.tv_usec);
+        snprintf(time_buf, 66, "%4d-%02d-%02d %02d:%02d:%02d.%06ld", (1900 + tm_local->tm_year), (1 + tm_local->tm_mon),
+                 tm_local->tm_mday, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec, tv.tv_usec);
 
         return true;
     }
     else if (2 == gap_flag)
     {
-        snprintf(time_buf, 66, "%4d-%02d-%02d_%02d-%02d-%02d-%06ld",
-                 (1900 + tm_local->tm_year), (1 + tm_local->tm_mon),
-                 tm_local->tm_mday, tm_local->tm_hour,
-                 tm_local->tm_min, tm_local->tm_sec, tv.tv_usec);
+        snprintf(time_buf, 66, "%4d-%02d-%02d_%02d-%02d-%02d-%06ld", (1900 + tm_local->tm_year), (1 + tm_local->tm_mon),
+                 tm_local->tm_mday, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec, tv.tv_usec);
 
         return true;
     }
