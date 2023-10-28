@@ -90,6 +90,14 @@ bool set_local_time(const date_time_t local_time);
 bool get_current_msec(uint64_t *msec);
 
 /**
+ * @brief  获取系统已运行时间
+ * @param  running_time: 系统已运行时间
+ * @return true : 成功
+ * @return false: 失败
+ */
+bool get_running_time(uint64_t *running_time);
+
+/**
  * @brief  unix时间戳转换为本地时间
  * @param  local_time: 输出参数, 转换后的本地时间
  * @param  unix_time : 输入参数, unix时间戳

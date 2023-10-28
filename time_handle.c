@@ -17,7 +17,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
-#include <sys/time.h>
 
 #include "./time_handle.h"
 
@@ -120,40 +119,41 @@ bool set_local_time_zone(const char *time_zone)
  */
 bool get_time_str(char *time_buf, const uint8_t gap_flag)
 {
-    struct timeval tv = {0};
-    struct timezone tz = {0};
-    struct tm *tm_local = NULL;
-
-    if (!time_buf)
+    if (NULL == time_buf)
     {
         return false;
     }
 
-    if (0 != gettimeofday(&tv, &tz))
+    struct timespec time_spec = {0};
+    if (-1 == clock_gettime(CLOCK_REALTIME, &time_spec))
     {
         return false;
     }
 
-    tm_local = localtime(&tv.tv_sec);
+    struct tm *tm_local = localtime(&time_spec.tv_sec);
+    if (NULL == tm_local)
+    {
+        return false;
+    }
 
     if (0 == gap_flag)
     {
         snprintf(time_buf, 60, "%4d%02d%02d%02d%02d%02d%06ld", (1900 + tm_local->tm_year), (1 + tm_local->tm_mon),
-                 tm_local->tm_mday, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec, tv.tv_usec);
+                 tm_local->tm_mday, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec, (time_spec.tv_nsec / 1000));
 
         return true;
     }
     else if (1 == gap_flag)
     {
         snprintf(time_buf, 66, "%4d-%02d-%02d %02d:%02d:%02d.%06ld", (1900 + tm_local->tm_year), (1 + tm_local->tm_mon),
-                 tm_local->tm_mday, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec, tv.tv_usec);
+                 tm_local->tm_mday, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec, (time_spec.tv_nsec / 1000));
 
         return true;
     }
     else if (2 == gap_flag)
     {
         snprintf(time_buf, 66, "%4d-%02d-%02d_%02d-%02d-%02d-%06ld", (1900 + tm_local->tm_year), (1 + tm_local->tm_mon),
-                 tm_local->tm_mday, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec, tv.tv_usec);
+                 tm_local->tm_mday, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec, (time_spec.tv_nsec / 1000));
 
         return true;
     }
@@ -169,21 +169,22 @@ bool get_time_str(char *time_buf, const uint8_t gap_flag)
  */
 bool get_local_time(date_time_t *local_time)
 {
-    struct timeval tv = {0};
-    struct timezone tz = {0};
-    struct tm *tm_local = NULL;
-
-    if (!local_time)
+    if (NULL == local_time)
     {
         return false;
     }
 
-    if (0 != gettimeofday(&tv, &tz))
+    struct timespec time_spec = {0};
+    if (-1 == clock_gettime(CLOCK_REALTIME, &time_spec))
     {
         return false;
     }
 
-    tm_local = localtime(&tv.tv_sec);
+    struct tm *tm_local = localtime(&time_spec.tv_sec);
+    if (NULL == tm_local)
+    {
+        return false;
+    }
 
     local_time->tm_year = (tm_local->tm_year + 1900);
     local_time->tm_mon = (tm_local->tm_mon + 1);
@@ -239,26 +240,42 @@ bool set_local_time(const date_time_t local_time)
  */
 bool get_current_msec(uint64_t *msec)
 {
-    struct timeval tv = {0};
-    // 获取到的秒
-    uint64_t sec = 0;
-    // 获取到的微秒
-    uint64_t usec = 0;
-
-    if (!msec)
+    if (NULL == msec)
     {
         return false;
     }
 
-    if (0 != gettimeofday(&tv, NULL))
+    struct timespec time_spec = {0};
+    if (-1 == clock_gettime(CLOCK_REALTIME, &time_spec))
     {
         return false;
     }
 
-    sec = tv.tv_sec;
-    usec = tv.tv_usec;
+    *msec = time_spec.tv_sec * 1000 + time_spec.tv_nsec / 1000000;
 
-    *msec = ((sec * 1000) + (usec / 1000));
+    return true;
+}
+
+/**
+ * @brief  获取系统已运行时间
+ * @param  running_time: 系统已运行时间
+ * @return true : 成功
+ * @return false: 失败
+ */
+bool get_running_time(uint64_t *running_time)
+{
+    if (NULL == running_time)
+    {
+        return false;
+    }
+
+    struct timespec time_spec = {0};
+    if (-1 == clock_gettime(CLOCK_MONOTONIC, &time_spec))
+    {
+        return false;
+    }
+
+    *running_time = time_spec.tv_sec * 1000 + time_spec.tv_nsec / 1000000;
 
     return true;
 }
