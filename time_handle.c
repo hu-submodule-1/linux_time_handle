@@ -217,13 +217,11 @@ bool set_local_time(const date_time_t local_time)
     new_time.tm_isdst = -1;
 
     t = mktime(&new_time);
-#if __GLIBC_MINOR__ == 31
+
     struct timespec res;
     res.tv_sec = t;
     clock_settime(CLOCK_REALTIME, &res);
-#else
-    ret = stime(&t);
-#endif
+
     if (0 != ret)
     {
         return false;
