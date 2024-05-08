@@ -17,6 +17,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
+#include <assert.h>
 
 #include "./time_handle.h"
 
@@ -26,6 +27,8 @@
  */
 void get_compile_time(char *get_time)
 {
+    assert(get_time != NULL);
+
     const char month[12][4] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
     char compile_date[20] = {0};
     char compile_time[20] = {0};
@@ -90,10 +93,7 @@ int get_local_time_zone(void)
  */
 bool set_local_time_zone(const char *time_zone)
 {
-    if (NULL == time_zone)
-    {
-        return false;
-    }
+    assert(time_zone != NULL);
 
     int ret = -1;
     ret = setenv("TZ", time_zone, 1);
@@ -119,10 +119,7 @@ bool set_local_time_zone(const char *time_zone)
  */
 bool get_time_str(char *time_buf, const uint8_t gap_flag)
 {
-    if (NULL == time_buf)
-    {
-        return false;
-    }
+    assert(time_buf != NULL);
 
     struct timespec time_spec = {0};
     if (-1 == clock_gettime(CLOCK_REALTIME, &time_spec))
@@ -169,10 +166,7 @@ bool get_time_str(char *time_buf, const uint8_t gap_flag)
  */
 bool get_local_time(date_time_t *local_time)
 {
-    if (NULL == local_time)
-    {
-        return false;
-    }
+    assert(local_time != NULL);
 
     struct timespec time_spec = {0};
     if (-1 == clock_gettime(CLOCK_REALTIME, &time_spec))
@@ -205,7 +199,6 @@ bool get_local_time(date_time_t *local_time)
 bool set_local_time(const date_time_t local_time)
 {
     int ret = -1;
-    time_t t = -1;
     struct tm new_time = {0};
 
     new_time.tm_sec = local_time.tm_sec;
@@ -216,12 +209,9 @@ bool set_local_time(const date_time_t local_time)
     new_time.tm_year = (local_time.tm_year - 1900);
     new_time.tm_isdst = -1;
 
-    t = mktime(&new_time);
-
-    struct timespec res;
-    res.tv_sec = t;
-    clock_settime(CLOCK_REALTIME, &res);
-
+    struct timespec res = {0};
+    res.tv_sec = mktime(&new_time);
+    ret = clock_settime(CLOCK_REALTIME, &res);
     if (0 != ret)
     {
         return false;
@@ -238,10 +228,7 @@ bool set_local_time(const date_time_t local_time)
  */
 bool get_current_msec(uint64_t *msec)
 {
-    if (NULL == msec)
-    {
-        return false;
-    }
+    assert(msec != NULL);
 
     struct timespec time_spec = {0};
     if (-1 == clock_gettime(CLOCK_REALTIME, &time_spec))
@@ -262,10 +249,7 @@ bool get_current_msec(uint64_t *msec)
  */
 bool get_running_time(uint64_t *running_time)
 {
-    if (NULL == running_time)
-    {
-        return false;
-    }
+    assert(running_time != NULL);
 
     struct timespec time_spec = {0};
     if (-1 == clock_gettime(CLOCK_MONOTONIC, &time_spec))
@@ -285,6 +269,8 @@ bool get_running_time(uint64_t *running_time)
  */
 void unix_time_to_local_time(date_time_t *local_time, const uint64_t unix_time)
 {
+    assert(local_time != NULL);
+
     struct tm *time = NULL;
 
     // 获取当地时间
@@ -305,6 +291,8 @@ void unix_time_to_local_time(date_time_t *local_time, const uint64_t unix_time)
  */
 void local_time_to_unix_time(uint64_t *unix_time, const date_time_t local_time)
 {
+    assert(unix_time != NULL);
+
     struct tm time = {0};
 
     time.tm_year = (local_time.tm_year - 1900);
@@ -320,31 +308,41 @@ void local_time_to_unix_time(uint64_t *unix_time, const date_time_t local_time)
 /**
  * @brief  从系统时间设置硬件时钟
  * @param  device: 输入参数, 指定设备(形如: /dev/rtc0)
+ * @return true : 成功
+ * @return false: 失败
  */
-void set_hardware_clock_from_system_time(const char *device)
+bool set_hardware_clock_from_system_time(const char *device)
 {
-    if (!device)
-    {
-        return;
-    }
+    assert(device != NULL);
 
     char cmd[256] = {0};
     snprintf(cmd, sizeof(cmd), "hwclock -w -f %s", device);
-    system(cmd);
+    int ret = system(cmd);
+    if (ret == -1)
+    {
+        return false;
+    }
+
+    return true;
 }
 
 /**
  * @brief  从硬件时钟设置系统时间
  * @param  device: 输入参数, 指定设备(形如: /dev/rtc0)
+ * @return true : 成功
+ * @return false: 失败
  */
-void set_system_time_from_hardware_clock(const char *device)
+bool set_system_time_from_hardware_clock(const char *device)
 {
-    if (!device)
-    {
-        return;
-    }
+    assert(device != NULL);
 
     char cmd[256] = {0};
     snprintf(cmd, sizeof(cmd), "hwclock -s -f %s", device);
-    system(cmd);
+    int ret = system(cmd);
+    if (ret == -1)
+    {
+        return false;
+    }
+
+    return true;
 }

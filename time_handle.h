@@ -114,14 +114,18 @@ void local_time_to_unix_time(uint64_t *unix_time, const date_time_t local_time);
 /**
  * @brief  从系统时间设置硬件时钟
  * @param  device: 输入参数, 指定设备(形如: /dev/rtc0)
+ * @return true : 成功
+ * @return false: 失败
  */
-void set_hardware_clock_from_system_time(const char *device);
+bool set_hardware_clock_from_system_time(const char *device);
 
 /**
  * @brief  从硬件时钟设置系统时间
  * @param  device: 输入参数, 指定设备(形如: /dev/rtc0)
+ * @return true : 成功
+ * @return false: 失败
  */
-void set_system_time_from_hardware_clock(const char *device);
+bool set_system_time_from_hardware_clock(const char *device);
 
 #ifdef __cplusplus
 }
