@@ -74,6 +74,15 @@ bool get_time_str(char *time_buf, const uint8_t gap_flag);
 bool get_local_time(date_time_t *local_time);
 
 /**
+ * @brief  获取系统当前时间偏移指定秒数的时间
+ * @param  local_time: 输出参数, 获取到的偏移后的时间
+ * @param  offset_sec: 输入参数, 偏移的秒数
+ * @return true : 成功
+ * @return false: 失败
+ */
+bool get_local_time_by_offset(date_time_t *local_time, const int64_t offset_sec);
+
+/**
  * @brief  设置系统当前时间
  * @param  local_time: 输入参数, 当前时间
  * @return true : 成功

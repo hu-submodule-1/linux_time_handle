@@ -191,6 +191,41 @@ bool get_local_time(date_time_t *local_time)
 }
 
 /**
+ * @brief  获取系统当前时间偏移指定秒数的时间
+ * @param  local_time: 输出参数, 获取到的偏移后的时间
+ * @param  offset_sec: 输入参数, 偏移的秒数
+ * @return true : 成功
+ * @return false: 失败
+ */
+bool get_local_time_by_offset(date_time_t *local_time, const int64_t offset_sec)
+{
+    assert(local_time != NULL);
+
+    struct timespec time_spec = {0};
+    if (-1 == clock_gettime(CLOCK_REALTIME, &time_spec))
+    {
+        return false;
+    }
+
+    time_spec.tv_sec += offset_sec;
+
+    struct tm *tm_local = localtime(&time_spec.tv_sec);
+    if (NULL == tm_local)
+    {
+        return false;
+    }
+
+    local_time->tm_year = (tm_local->tm_year + 1900);
+    local_time->tm_mon = (tm_local->tm_mon + 1);
+    local_time->tm_day = tm_local->tm_mday;
+    local_time->tm_hour = tm_local->tm_hour;
+    local_time->tm_min = tm_local->tm_min;
+    local_time->tm_sec = tm_local->tm_sec;
+
+    return true;
+}
+
+/**
  * @brief  设置系统当前时间
  * @param  local_time: 输入参数, 当前时间
  * @return true : 成功
